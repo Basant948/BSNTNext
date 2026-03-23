@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="BSNTNext.Application/BSNTNext.Application.csproj" />
+  <Project Path="BSNTNext.Domain/BSNTNext.Domain.csproj" />
+  <Project Path="BSNTNext.Infrastructure/BSNTNext.Infrastructure.csproj" />
+  <Project Path="BSNTNext.Web/BSNTNext.Web.csproj" />
+</Solution>
