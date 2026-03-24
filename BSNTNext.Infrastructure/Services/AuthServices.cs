@@ -9,10 +9,15 @@ using System.Text;
 
 namespace BSNTNext.Infrastructure.Services
 {
-    internal class AuthServices : IAuthServices
+    public class AuthServices : IAuthServices
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        public AuthServices(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+        }
         public async Task<Result> LoginAsync(LoginDto dto)
         {
             if (dto == null)
