@@ -5,30 +5,83 @@
     var returnUrl = ViewData["ReturnUrl"] as string;
 }
 
-<h2>Login</h2>
+<div class="container min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-4 p-4">
 
-<form asp-action="Login" asp-route-returnUrl="@returnUrl" method="post">
-    @Html.AntiForgeryToken()
+            <!-- Header -->
+            <div class="text-center mb-3">
+                <h2 class="fw-bold text-primary">
+                    <span class="text-secondary">Bsnt</span><span class="text-dark">Next</span>
+                </h2>
+                <small class="text-muted">Healthcare Management System</small>
+            </div>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <hr />
 
-    <div class="mb-3">
-        <label asp-for="Email" class="form-label"></label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
+            <h4 class="text-center mb-3">Sign In</h4>
+
+            <form asp-action="Login" asp-route-returnUrl="@returnUrl" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input asp-for="Email" class="form-control" placeholder="user@gmail.com" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <!-- Password -->
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input asp-for="Password" type="password" class="form-control" id="pwd" />
+                        <button type="button" class="btn btn-outline-secondary" id="togglePwd">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <!-- Remember -->
+                <div class="form-check mb-3">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+                </div>
+
+                <!-- Submit -->
+                <button class="btn btn-primary w-100 mb-3">Sign In</button>
+
+                <!-- Register -->
+                <p class="text-center mb-0">
+                    Don’t have an account?
+                    <a asp-action="Register" asp-route-returnUrl="@returnUrl">Create Account</a>
+                </p>
+            </form>
+
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="Password" class="form-label"></label>
-        <input asp-for="Password" type="password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Login</button>
-
-    <a asp-action="Register" asp-route-returnUrl="@returnUrl" class="ms-3">Don't have an account? Register</a>
-</form>
+</div>
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        const btn = document.getElementById('togglePwd');
+        const input = document.getElementById('pwd');
+        const icon = btn.querySelector('i');
+
+        btn.onclick = () => {
+            const isPwd = input.type === 'password';
+            input.type = isPwd ? 'text' : 'password';
+            icon.classList.toggle('bi-eye');
+            icon.classList.toggle('bi-eye-slash');
+        };
+    </script>
 }

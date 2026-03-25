@@ -5,42 +5,113 @@
     var returnUrl = ViewData["ReturnUrl"] as string;
 }
 
-<h2>Register</h2>
+<div class="container min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-4 p-4">
 
-<form asp-action="Register" asp-route-returnUrl="@returnUrl" method="post">
-    @Html.AntiForgeryToken()
+            <!-- Header -->
+            <div class="text-center mb-3">
+                <h2 class="fw-bold text-primary">ehrnext</h2>
+                <small class="text-muted">Healthcare Management System</small>
+            </div>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <hr />
 
-    <div class="mb-3">
-        <label asp-for="FirstName" class="form-label"></label>
-        <input asp-for="FirstName" class="form-control" />
-        <span asp-validation-for="FirstName" class="text-danger"></span>
+            <h4 class="text-center mb-3">Create Account</h4>
+
+            <form asp-action="Register" asp-route-returnUrl="@returnUrl" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <!-- First Name -->
+                <div class="mb-3">
+                    <label asp-for="FirstName"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input asp-for="FirstName" class="form-control" />
+                    </div>
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <!-- Last Name -->
+                <div class="mb-3">
+                    <label asp-for="LastName"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input asp-for="LastName" class="form-control" />
+                    </div>
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label asp-for="Email"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input asp-for="Email" class="form-control" placeholder="user@example.com" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <!-- Password -->
+                <div class="mb-3">
+                    <label asp-for="Password"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input asp-for="Password" type="password" class="form-control pwd-input" />
+                        <button type="button" class="btn btn-outline-secondary togglePwd">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <!-- Confirm Password -->
+                <div class="mb-3">
+                    <label asp-for="ConfirmPassword"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control pwd-input" />
+                        <button type="button" class="btn btn-outline-secondary togglePwd">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <!-- Submit -->
+                <button class="btn btn-primary w-100 mb-3">Register</button>
+
+                <!-- Login Link -->
+                <p class="text-center mb-0">
+                    Already have an account?
+                    <a asp-action="Login" asp-route-returnUrl="@returnUrl">Login</a>
+                </p>
+            </form>
+
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="LastName" class="form-label"></label>
-        <input asp-for="LastName" class="form-control" />
-        <span asp-validation-for="LastName" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Email" class="form-label"></label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Password" class="form-label"></label>
-        <input asp-for="Password" type="password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Register</button>
-
-    <a asp-action="Login" asp-route-returnUrl="@returnUrl" class="ms-3">Already have an account? Login</a>
-</form>
+</div>
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        document.querySelectorAll(".togglePwd").forEach(btn => {
+
+            btn.addEventListener("click", function () {
+
+                const input = this.parentElement.querySelector(".pwd-input");
+                const icon = this.querySelector("i");
+
+                const isPwd = input.type === "password";
+
+                input.type = isPwd ? "text" : "password";
+
+                icon.classList.toggle("bi-eye");
+                icon.classList.toggle("bi-eye-slash");
+            });
+
+        });
+    </script>
 }

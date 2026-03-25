@@ -1,6 +1,9 @@
+using BSNTNext.Application.Validations;
 using BSNTNext.Infrastructure;
+using BSNTNext.Application;
 using BSNTNext.Infrastructure.Data;
 using BSNTNext.Infrastructure.Identity;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,7 +39,16 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
+
+builder.Services.AddControllersWithViews()
+     .AddFluentValidation(fv =>
+    {
+        // register validators
+        fv.RegisterValidatorsFromAssemblyContaining<RegisterDtoValidator>();
+    });
+
 
 var app = builder.Build();
 
