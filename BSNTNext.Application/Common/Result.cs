@@ -17,16 +17,16 @@ namespace BSNTNext.Application.Common
             return new Result
             {
                 Succeeded = true,
-                Message = message
+                Message = message ?? ""
             };
         }
 
-        public static Result Failure(string error)
+        public static Result Failure(string? message = null)
         {
             return new Result
             {
                 Succeeded = false,
-                Errors = new List<string> { error }
+                Message = message ?? "" 
             };
         }
 
