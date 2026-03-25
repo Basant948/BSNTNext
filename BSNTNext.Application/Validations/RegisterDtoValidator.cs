@@ -15,8 +15,13 @@ namespace BSNTNext.Application.Validations
                 .EmailAddress();
 
             RuleFor(x => x.Password)
+                  .NotEmpty()
+                  .MinimumLength(6);
+
+            RuleFor(x => x.ConfirmPassword)
                 .NotEmpty()
-                .MinimumLength(6);
+                .Equal(x => x.Password)
+                .WithMessage("The password and confirmation password do not match.");
 
             RuleFor(x => x.FirstName)
                 .NotEmpty();
