@@ -35,7 +35,7 @@ namespace BSNTNext.Infrastructure.Services
             var result = await _signInManager.PasswordSignInAsync(
                 user,
                 dto.Password,
-                isPersistent: false,
+                isPersistent: dto.RememberMe,
                 lockoutOnFailure: true
             );
 
