@@ -20,6 +20,8 @@ namespace BSNTNext.Infrastructure.Services
             _signInManager = signInManager;
             _emailService = emailService;
         }
+
+        #region login and logout
         public async Task<Result> LoginAsync(LoginDto dto)
         {
             if (dto == null)
@@ -59,6 +61,9 @@ namespace BSNTNext.Infrastructure.Services
             return Result.Success("Logged out successfully.");
         }
 
+        #endregion
+
+        #region registration and email confirmation
         public async Task<Result> RegisterAsync(RegisterDto dto, string verificationLink)
         {
             if (dto == null)
@@ -88,7 +93,6 @@ namespace BSNTNext.Infrastructure.Services
             if (!identityResult.Succeeded)
                 return Result.Failure(identityResult.Errors.Select(e => e.Description));
 
-            // ✅ Generate token and send the link built by the controller
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var link = verificationLink + $"?userId={user.Id}&token={Uri.EscapeDataString(token)}";
 
@@ -96,9 +100,12 @@ namespace BSNTNext.Infrastructure.Services
 
             return Result.Success("Registration successful. Please check your email to confirm your account.");
         }
-        public async Task<Result> ConfirmEmailAsync(Guid userId, string token)
+        public async Task<Result> ConfirmEmailAsync(string userId, string token)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (string.IsNullOrEmpty(userId))
+                return Result.Failure("Invalid request.");
+
+            var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
                 return Result.Failure("User not found.");
@@ -110,5 +117,53 @@ namespace BSNTNext.Infrastructure.Services
 
             return Result.Success("Email confirmed successfully.");
         }
+        #endregion
+
+        #region password reset
+
+        public async Task<Result> ForgotPasswordAsync(ForgotPasswordDto dto, string resetLink)
+        {
+            if (dto == null)
+                return Result.Failure("Invalid request.");
+
+            var email = dto.Email?.Trim().ToLowerInvariant();
+
+            if (string.IsNullOrWhiteSpace(email))
+                return Result.Failure("Email is required.");
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
+                return Result.Success("If this email is registered, a reset link has been sent.");
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var link = resetLink + $"?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+
+            await _emailService.SendPasswordResetAsync(user.Email, link);
+
+            return Result.Success("If this email is registered, a reset link has been sent.");
+        }
+
+        public async Task<Result> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            if (dto == null)
+                return Result.Failure("Invalid request.");
+
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+
+            if (user == null)
+                return Result.Failure("Invalid request.");
+
+            var token = Uri.UnescapeDataString(dto.Token);
+
+            var result = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
+
+            if (!result.Succeeded)
+                return Result.Failure(result.Errors.Select(e => e.Description));
+
+            return Result.Success("Password reset successful. You can now log in.");
+        }
+        #endregion
     }
 }
