@@ -39,5 +39,27 @@ namespace BSNTNext.Infrastructure.Services
 
             await smtp.SendMailAsync(message);
         }
+        public async Task SendPasswordResetAsync(string toEmail, string resetLink)
+        {
+            var message = new MailMessage
+            {
+                From = new MailAddress(_settings.Email, "BsntNext"),
+                Subject = "Reset Your Password",
+                Body = $"<p>You requested a password reset.</p>" +
+                       $"<p><a href='{resetLink}'>Click here to reset your password</a></p>" +
+                       $"<p>If you did not request this, ignore this email.</p>",
+                IsBodyHtml = true
+            };
+
+            message.To.Add(toEmail);
+
+            using var smtp = new SmtpClient(_settings.Host, _settings.Port)
+            {
+                Credentials = new NetworkCredential(_settings.Email, _settings.AppPassword),
+                EnableSsl = true
+            };
+
+            await smtp.SendMailAsync(message);
+        }
     }
 }
