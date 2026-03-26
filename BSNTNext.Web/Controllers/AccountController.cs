@@ -52,8 +52,7 @@ namespace BSNTNext.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
-
-        // POST: /Account/Register
+          // Post: /Account/Regisster
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterDto dto, string? returnUrl = null)
@@ -63,20 +62,49 @@ namespace BSNTNext.Web.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
 
-            var result = await _authServices.RegisterAsync(dto);
+            var confirmationBase = Url.Action("ConfirmEmail", "Account", null, Request.Scheme)!;
+
+            var result = await _authServices.RegisterAsync(dto, confirmationBase);
 
             if (!result.Succeeded)
             {
-                ModelState.AddModelError(string.Empty, result.Message);
+                ModelState.AddModelError(string.Empty, result.Message ?? string.Join(", ", result.Errors));
                 return View(dto);
             }
 
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
-
-            return RedirectToAction("Index", "Home");
+            TempData["SuccessMessage"] = result.Message;
+            return RedirectToAction("RegisterConfirmation");
         }
 
+        // RegistrationConfirmation
+        [HttpGet]
+        public IActionResult RegisterConfirmation()
+        {
+            ViewBag.Message = TempData["SuccessMessage"] ?? "Registration successful. Please check your email.";
+            return View();
+        }
+          // Confirm email
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(Guid userId, string token)
+        {
+            if (userId == Guid.Empty || string.IsNullOrEmpty(token))
+            {
+                ViewBag.Error = "Invalid confirmation link.";
+                return View("Error");
+            }
+
+            token = Uri.UnescapeDataString(token);
+
+            var result = await _authServices.ConfirmEmailAsync(userId, token);
+
+            if (!result.Succeeded)
+            {
+                ViewBag.Error = result.Message;
+                return View("Error");
+            }
+
+            return View("EmailConfirmed");
+        }
         // POST: /Account/Logout
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -85,5 +113,6 @@ namespace BSNTNext.Web.Controllers
             await _authServices.LogoutAsync();
             return RedirectToAction("Index", "Home");
         }
+
     }
 }

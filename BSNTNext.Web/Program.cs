@@ -1,8 +1,11 @@
+using BSNTNext.Application;
+using BSNTNext.Application.Common;
+using BSNTNext.Application.Interfaces.Services;
 using BSNTNext.Application.Validations;
 using BSNTNext.Infrastructure;
-using BSNTNext.Application;
 using BSNTNext.Infrastructure.Data;
 using BSNTNext.Infrastructure.Identity;
+using BSNTNext.Infrastructure.Services;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -24,8 +26,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
     options.Lockout.MaxFailedAccessAttempts = 5;
     options.Lockout.AllowedForNewUsers = true;
-    options.SignIn.RequireConfirmedAccount = false;
-    options.SignIn.RequireConfirmedEmail = false;
+
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
@@ -49,6 +50,9 @@ builder.Services.AddControllersWithViews()
         fv.RegisterValidatorsFromAssemblyContaining<RegisterDtoValidator>();
     });
 
+builder.Services.Configure<GmailSettings>(
+   builder.Configuration.GetSection("GmailSettings"));
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
 
@@ -63,6 +67,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
