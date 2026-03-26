@@ -13,7 +13,8 @@ namespace BSNTNext.Web.Controllers
             _authServices = authServices;
         }
 
-        // GET: /Account/Login
+        #region login  and logout
+
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -21,7 +22,6 @@ namespace BSNTNext.Web.Controllers
             return View();
         }
 
-        // POST: /Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginDto dto, string? returnUrl = null)
@@ -45,14 +45,24 @@ namespace BSNTNext.Web.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: /Account/Register
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await _authServices.LogoutAsync();
+            return RedirectToAction("Index", "Home");
+        }
+
+        #endregion
+
+        #region register
         [HttpGet]
         public IActionResult Register(string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
-          // Post: /Account/Regisster
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterDto dto, string? returnUrl = null)
@@ -76,18 +86,21 @@ namespace BSNTNext.Web.Controllers
             return RedirectToAction("RegisterConfirmation");
         }
 
-        // RegistrationConfirmation
+        #endregion
+
+        #region registration and email confirmation
+
         [HttpGet]
         public IActionResult RegisterConfirmation()
         {
             ViewBag.Message = TempData["SuccessMessage"] ?? "Registration successful. Please check your email.";
             return View();
         }
-          // Confirm email
+
         [HttpGet]
-        public async Task<IActionResult> ConfirmEmail(Guid userId, string token)
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
-            if (userId == Guid.Empty || string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
             {
                 ViewBag.Error = "Invalid confirmation link.";
                 return View("Error");
@@ -100,19 +113,86 @@ namespace BSNTNext.Web.Controllers
             if (!result.Succeeded)
             {
                 ViewBag.Error = result.Message;
-                return View("Error");
+                return View("ConfirmEmailFailed");
             }
 
             return View("EmailConfirmed");
         }
-        // POST: /Account/Logout
+
+        #endregion
+
+
+        #region password reset
+
+        [HttpGet]
+        public IActionResult ForgotPassword() => View();
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
         {
-            await _authServices.LogoutAsync();
-            return RedirectToAction("Index", "Home");
+            if (!ModelState.IsValid)
+                return View(dto);
+
+            var resetBase = Url.Action("ResetPassword", "Account", null, Request.Scheme)!;
+
+            var result = await _authServices.ForgotPasswordAsync(dto, resetBase);
+
+            TempData["Message"] = result.Message;
+            return RedirectToAction("ForgotPasswordConfirmation");
         }
 
+        [HttpGet]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            ViewBag.Message = TempData["Message"] ?? "If this email is registered, a reset link has been sent.";
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string userId, string token)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+            {
+                ViewBag.Error = "Invalid password reset link.";
+                return View("Error");
+            }
+
+            var dto = new ResetPasswordDto
+            {
+                UserId = userId,
+                Token = token
+            };
+
+            return View(dto);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return View(dto);
+
+            var result = await _authServices.ResetPasswordAsync(dto);
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, result.Message ?? string.Join(", ", result.Errors));
+                return View(dto);
+            }
+
+            TempData["Message"] = result.Message;
+            return RedirectToAction("ResetPasswordConfirmed");
+        }
+
+        [HttpGet]
+        public IActionResult ResetPasswordConfirmed()
+        {
+            ViewBag.Message = TempData["Message"] ?? "Password reset successful.";
+            return View();
+        }
+
+        #endregion
     }
 }
