@@ -11,6 +11,8 @@ namespace BSNTNext.Application.Interfaces.Services
         Task<Result> RegisterAsync(RegisterDto dto, string verificationLink);
         Task<Result> LoginAsync(LoginDto dto);
         Task<Result> LogoutAsync();
-        Task<Result> ConfirmEmailAsync(Guid userId, string token);
+        Task<Result> ConfirmEmailAsync(string userId, string token);
+        Task<Result> ForgotPasswordAsync(ForgotPasswordDto dto, string resetLink);
+        Task<Result> ResetPasswordAsync(ResetPasswordDto dto);
     }
 }
