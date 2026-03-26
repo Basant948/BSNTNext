@@ -8,8 +8,9 @@ namespace BSNTNext.Application.Interfaces.Services
 {
     public interface IAuthServices
     {
-        Task<Result> RegisterAsync(RegisterDto dto);
+        Task<Result> RegisterAsync(RegisterDto dto, string verificationLink);
         Task<Result> LoginAsync(LoginDto dto);
         Task<Result> LogoutAsync();
+        Task<Result> ConfirmEmailAsync(Guid userId, string token);
     }
 }

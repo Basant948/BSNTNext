@@ -13,10 +13,12 @@ namespace BSNTNext.Infrastructure.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        public AuthServices(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        private readonly IEmailService _emailService;
+        public AuthServices(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailService = emailService;
         }
         public async Task<Result> LoginAsync(LoginDto dto)
         {
@@ -31,6 +33,9 @@ namespace BSNTNext.Infrastructure.Services
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 return Result.Failure("Invalid email or password.");
+
+            if (!await _userManager.IsEmailConfirmedAsync(user))
+                return Result.Failure("Please confirm your email first.");
 
             var result = await _signInManager.PasswordSignInAsync(
                 user,
@@ -54,7 +59,7 @@ namespace BSNTNext.Infrastructure.Services
             return Result.Success("Logged out successfully.");
         }
 
-        public async Task<Result> RegisterAsync(RegisterDto dto)
+        public async Task<Result> RegisterAsync(RegisterDto dto, string verificationLink)
         {
             if (dto == null)
                 return Result.Failure("Invalid request.");
@@ -76,17 +81,34 @@ namespace BSNTNext.Infrastructure.Services
                 Email = email,
                 FirstName = firstName,
                 LastName = lastName,
-                CreatedAt   = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow
             };
 
             var identityResult = await _userManager.CreateAsync(user, dto.Password);
-
             if (!identityResult.Succeeded)
                 return Result.Failure(identityResult.Errors.Select(e => e.Description));
 
-            await _signInManager.SignInAsync(user, isPersistent: false);
+            // ✅ Generate token and send the link built by the controller
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var link = verificationLink + $"?userId={user.Id}&token={Uri.EscapeDataString(token)}";
 
-            return Result.Success("Registered successfully.");
+            await _emailService.SendEmailVerificationAsync(user.Email, link);
+
+            return Result.Success("Registration successful. Please check your email to confirm your account.");
+        }
+        public async Task<Result> ConfirmEmailAsync(Guid userId, string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user == null)
+                return Result.Failure("User not found.");
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+
+            if (!result.Succeeded)
+                return Result.Failure("Invalid or expired token.");
+
+            return Result.Success("Email confirmed successfully.");
         }
     }
 }
