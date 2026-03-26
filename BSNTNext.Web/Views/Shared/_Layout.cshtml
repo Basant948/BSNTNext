@@ -30,6 +30,12 @@
                     </ul>
                 </div>
             </div>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                    <button type="submit" class="btn btn-link nav-link">Logout</button>
+                </form>
+            }
         </nav>
     </header>
     <div class="container">
