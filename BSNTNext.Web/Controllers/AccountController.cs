@@ -1,5 +1,6 @@
 ﻿using BSNTNext.Application.Dtos.Auth;
 using BSNTNext.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BSNTNext.Web.Controllers
@@ -193,6 +194,37 @@ namespace BSNTNext.Web.Controllers
             return View();
         }
 
+        #endregion
+        #region change password
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult ChangePassword() => View();
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return View(dto);
+            var result = await _authServices.ChangePasswordAsync(dto);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, result.Message ?? string.Join(", ", result.Errors));
+                return View(dto);
+            }
+            TempData["Message"] = result.Message;
+            return RedirectToAction("ChangePasswordConfirmation");
+        }
+        [Authorize]
+        [HttpGet]
+        public IActionResult ChangePasswordConfirmation()
+        {
+            if (TempData["Message"] == null)
+                return RedirectToAction("ChangePassword");
+
+            return View();
+        }
         #endregion
     }
 }
