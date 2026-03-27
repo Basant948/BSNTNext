@@ -165,5 +165,21 @@ namespace BSNTNext.Infrastructure.Services
             return Result.Success("Password reset successful. You can now log in.");
         }
         #endregion
+
+        #region Change password
+        public async Task<Result> ChangePasswordAsync(ChangePasswordDto dto)
+        {
+            if (dto == null)
+                return Result.Failure("Invalid request.");
+            var user = await _userManager.GetUserAsync(_signInManager.Context.User);
+            if (user == null)
+                return Result.Failure("User not found.");
+            var result = await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
+            if (!result.Succeeded)
+                return Result.Failure(result.Errors.Select(e => e.Description));
+            await _signInManager.RefreshSignInAsync(user);
+            return Result.Success("Password changed successfully.");
+        }
+        #endregion
     }
 }

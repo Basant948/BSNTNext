@@ -14,5 +14,6 @@ namespace BSNTNext.Application.Interfaces.Services
         Task<Result> ConfirmEmailAsync(string userId, string token);
         Task<Result> ForgotPasswordAsync(ForgotPasswordDto dto, string resetLink);
         Task<Result> ResetPasswordAsync(ResetPasswordDto dto);
+        Task<Result> ChangePasswordAsync(ChangePasswordDto dto);
     }
 }
