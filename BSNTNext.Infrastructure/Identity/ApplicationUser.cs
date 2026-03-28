@@ -1,4 +1,5 @@
 ﻿using BSNTNext.Domain.Base;
+using BSNTNext.Domain.Entity;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;

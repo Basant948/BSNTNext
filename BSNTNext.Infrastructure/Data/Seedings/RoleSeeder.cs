@@ -21,7 +21,7 @@ namespace BSNTNext.Infrastructure.Data.Seedings
             ApplicationDbContext db,
             RoleManager<IdentityRole<Guid>> roleManager)
         {
-            if (await db.seedHistory.AnyAsync(s => s.SeedKey == SeedKey))
+            if (await db.SeedHistory.AnyAsync(s => s.SeedKey == SeedKey))
                 return;
 
             foreach (var role in Roles)
@@ -32,7 +32,7 @@ namespace BSNTNext.Infrastructure.Data.Seedings
                 }
             }
 
-            db.seedHistory.Add(new SeedHistory
+            db.SeedHistory.Add(new SeedHistory
             {
                 SeedKey = SeedKey,
                 AppliedAt = DateTime.UtcNow,

@@ -19,6 +19,8 @@ namespace BSNTNext.Infrastructure.Data.Seedings
 
             await RoleSeeder.SeedAsync(db, roleManager);
             await SystemUsersSeeder.SeedAsync(db, userManager);
+            await ModuleSeeder.SeedAsync(db);
+            await PermissionSeeder.SeedAsync(db);
         }
     }
 }

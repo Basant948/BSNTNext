@@ -27,7 +27,7 @@ namespace BSNTNext.Infrastructure.Data.Seedings
        ApplicationDbContext db,
        UserManager<ApplicationUser> userManager)
         {
-            if (await db.seedHistory.AnyAsync(s => s.SeedKey == SeedKey))
+            if (await db.SeedHistory.AnyAsync(s => s.SeedKey == SeedKey))
                 return; 
 
             int created = 0;
@@ -57,7 +57,7 @@ namespace BSNTNext.Infrastructure.Data.Seedings
                 }
             }
 
-            db.seedHistory.Add(new SeedHistory
+            db.SeedHistory.Add(new SeedHistory
             {
                 SeedKey = SeedKey,
                 AppliedAt = DateTime.UtcNow,
