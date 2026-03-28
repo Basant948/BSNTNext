@@ -1,8 +1,66 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<BSNTNext.Domain.Entity.AppModule>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Dashboard";
+    bool isAdmin = ViewBag.IsAdmin == true;
+
+    var iconMap = new Dictionary<string, string>
+    {
+        { "AdminModule",        "bi bi-gear-wide-connected" },
+        { "RegistrationModule", "bi bi-person-badge" },
+        { "ClinicalModule",     "bi bi-heart-pulse" },
+        { "PharmacyModule",     "bi bi-capsule" },
+    };
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div style="background:#2A6EBB; min-height:calc(100vh - 60px); padding:40px 40px;">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ehr-alert alert alert-success alert-dismissible fade show shadow" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:24px; max-width:1100px; margin:0 auto;">
+            @foreach (var module in Model)
+            {
+                var icon = iconMap.TryGetValue(module.AreaName, out var ic) ? ic : "bi bi-grid-3x3-gap";
+                <a href="/@module.AreaName/Dashboard/Index"
+                       style="background:#fff; border-radius:12px; padding:40px 20px 30px;
+                    display:flex; flex-direction:column; align-items:center; text-align:center;
+                    text-decoration:none; color:#333; box-shadow:0 2px 10px rgba(0,0,0,0.12);
+                    border:2px solid transparent; transition:all 0.18s ease;"
+                       onmouseover="this.style.transform='translateY(-5px)';this.style.borderColor='#3a84d8';this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)';"
+                       onmouseout="this.style.transform='translateY(0)';this.style.borderColor='transparent';this.style.boxShadow='0 2px 10px rgba(0,0,0,0.12)';">
+                    <i class="@icon" style="font-size:3.5rem; color:#2A6EBB; margin-bottom:20px;"></i>
+                    <span style="font-size:1rem; font-weight:600; color:#333;">@module.DisplayName</span>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div style="text-align:center; color:rgba(255,255,255,0.85); padding:80px 20px;">
+            <i class="bi bi-lock" style="font-size:4rem; opacity:0.6; margin-bottom:20px; display:block;"></i>
+            <h4 style="font-weight:600; margin-bottom:8px;">No Modules Assigned</h4>
+            <p style="opacity:0.75; max-width:380px; margin:0 auto; font-size:0.95rem;">
+                You don't have access to any modules yet.<br />
+                Please contact your administrator to get module access.
+            </p>
+        </div>
+    }
 </div>
+
+@if (isAdmin)
+{
+    <a href="/Admin"
+           style="position:fixed;bottom:28px;right:28px;border-radius:50px;padding:10px 20px;
+        font-weight:600;z-index:999;background:#1a3a5c;color:#fff;text-decoration:none;
+        box-shadow:0 4px 14px rgba(0,0,0,0.2);font-size:0.85rem;">
+        <i class="bi bi-people me-2"></i>User Accounts
+    </a>
+}
