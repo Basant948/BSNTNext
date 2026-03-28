@@ -4,6 +4,7 @@ using BSNTNext.Application.Interfaces.Services;
 using BSNTNext.Application.Validations;
 using BSNTNext.Infrastructure;
 using BSNTNext.Infrastructure.Data;
+using BSNTNext.Infrastructure.Data.Seedings;
 using BSNTNext.Infrastructure.Identity;
 using BSNTNext.Infrastructure.Services;
 using FluentValidation.AspNetCore;
@@ -76,6 +77,9 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+using (var scope = app.Services.CreateScope())
+    await DbSeeder.SeedAsync(scope.ServiceProvider);
 
 
 app.Run();
