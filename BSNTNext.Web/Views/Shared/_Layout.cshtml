@@ -11,44 +11,95 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">WebApplication1</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <!-- TOP NAVIGATION BAR -->
+        <nav class="ehr-topbar d-flex align-items-center justify-content-between px-4">
+
+            <!-- Logo -->
+            <div class="ehr-logo">
+                <a asp-controller="Home" asp-action="Index"
+                       class="text-decoration-none fw-bold fs-4">
+
+                    <span class="text-primary">BSNT</span><span class="text-warning">NEXT</span>
+
+                </a>
+            </div>
+
+            <!-- Center: Health Center Name -->
+            <div class="ehr-center-title">
+                @(ViewBag.CenterName ?? "डेमो स्वास्थ्य केन्द्र")
+            </div>
+
+            <!-- Right: Date + User -->
+            <div class="d-flex align-items-center gap-3">
+
+                <!-- Date -->
+                <span class="ehr-date">
+                    <i class="fa-regular fa-calendar me-1"></i>
+                    @DateTime.Now.ToString("MMM dd, yyyy (dddd)")
+                </span>
+
+                <!-- User Dropdown -->
+                <div class="dropdown">
+
+                    <div class="ehr-user-pill d-flex align-items-center gap-2 dropdown-toggle"
+                         role="button"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="false">
+
+                        <span class="ehr-username">
+                            @(ViewBag.UserFullName ?? User.Identity?.Name)
+                        </span>
+
+                        <i class="bi bi-person-circle fs-5"></i>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+
+                        <li>
+                            <span class="dropdown-item-text fw-semibold">
+                                @(ViewBag.UserFullName ?? User.Identity?.Name)
+                            </span>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <a class="dropdown-item" href="/Account/Profile">
+                                <i class="bi bi-person me-2"></i>Profile
+                            </a>
                         </li>
+
+                        <li>
+                            <a class="dropdown-item" href="/Account/ChangePassword">
+                                <i class="bi bi-key me-2"></i>Change Password
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <form method="post" action="/Account/Logout" class="m-0">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+
                     </ul>
                 </div>
+
             </div>
-            @if (User.Identity.IsAuthenticated)
-            {
-                <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
-                    <button type="submit" class="btn btn-link nav-link">Logout</button>
-                </form>
-            }
         </nav>
-    </header>
+    }
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - WebApplication1 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
