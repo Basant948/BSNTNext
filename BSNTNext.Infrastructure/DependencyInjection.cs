@@ -8,7 +8,8 @@ namespace BSNTNext.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-            services.AddScoped<IAuthServices, AuthServices>();  
+            services.AddScoped<IAuthServices, AuthServices>();
+            services.AddScoped<IHomeService, HomeService>();
 
 
             return services;
