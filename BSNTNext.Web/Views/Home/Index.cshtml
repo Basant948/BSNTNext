@@ -32,15 +32,7 @@
 
 <div class="full-width-bg">
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div id="loginAlert" class="alert alert-success alert-dismissible fade show">
-            <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
-            <button class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    @if (Model?.Any() == true)
+    @if (Model?.Any() == true)  //@if (Model != null && Model.Any()) ---- Same
     {
         <div class="row g-4">
             @foreach (var module in Model)
@@ -71,12 +63,3 @@
     }
 
 </div>
-
-@section Scripts {
-    <script>
-        const alert = document.getElementById('loginAlert');
-        if (alert) {
-            setTimeout(() => bootstrap.Alert.getOrCreateInstance(alert).close(), 2000);
-        }
-    </script>
-}

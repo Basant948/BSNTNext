@@ -32,7 +32,6 @@ namespace BSNTNext.Web.Controllers
                 return RedirectToAction("Login", "Account");
 
             ViewBag.UserFullName = dashboard.UserFullName;
-            TempData["SuccessMessage"] = $"{dashboard.UserFullName} logged in successfully!";
 
             return View(dashboard.Modules);
         }
