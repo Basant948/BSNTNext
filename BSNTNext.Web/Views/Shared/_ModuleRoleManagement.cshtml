@@ -1,0 +1,194 @@
+﻿@using BSNTNext.Application.Dtos.RoleManagement
+@model ModuleRolePageDto
+
+@{
+    var toggleUrl   = ViewBag.ToggleAccessUrl    as string ?? "";
+    var getPermUrl  = ViewBag.GetPermissionsUrl  as string ?? "";
+    var savePermUrl = ViewBag.SavePermissionsUrl as string ?? "";
+}
+
+<style>
+    .rm-wrap  { padding: 24px; }
+    .rm-title { font-size: 1.4rem; font-weight: 700; color: #1a3a5c; margin-bottom: 20px; }
+    .rm-grid  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;
+                border: 1px solid #d0d7e2; border-radius: 6px; overflow: hidden;
+                background: #fff; height: calc(100vh - 140px); }
+    .rm-col   { display: flex; flex-direction: column; border-right: 1px solid #d0d7e2; }
+    .rm-col:last-child { border-right: none; }
+    .rm-col-header { padding: 12px 14px; font-weight: 600; font-size: 0.85rem;
+                     color: #333; border-bottom: 1px solid #d0d7e2; background: #f8f9fa; flex-shrink: 0; }
+    .rm-search { padding: 8px 10px; border-bottom: 1px solid #d0d7e2; flex-shrink: 0; }
+    .rm-search input { width: 100%; border: 1px solid #d0d7e2; border-radius: 4px;
+                       padding: 5px 10px; font-size: 0.82rem; outline: none; }
+    .rm-search input:focus { border-color: #2A6EBB; }
+    .rm-list  { overflow-y: auto; flex: 1; }
+    .rm-item  { display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+                border-bottom: 1px solid #f0f2f5; font-size: 0.84rem; color: #333; cursor: pointer; }
+    .rm-item:hover  { background: #f0f5ff; }
+    .rm-item.active { background: #e8f0fb; }
+    .rm-item input[type=checkbox] { flex-shrink: 0; accent-color: #2A6EBB; width: 15px; height: 15px; cursor: pointer; }
+    .rm-save-bar { padding: 10px 14px; border-bottom: 1px solid #d0d7e2;
+                   background: #f8f9fa; flex-shrink: 0; display: none; }
+    .rm-save-bar button { background: #2A6EBB; color: #fff; border: none; border-radius: 4px;
+                          padding: 6px 18px; font-size: 0.83rem; font-weight: 600; cursor: pointer; }
+    .rm-save-bar button:hover { background: #1a5aa0; }
+    .rm-empty { color: #bbb; font-size: 0.82rem; text-align: center; padding: 40px 16px; }
+</style>
+
+<div class="rm-wrap">
+    <div class="rm-title">Role Management</div>
+    <div class="rm-grid">
+
+        <!-- COL 1: All Users -->
+        <div class="rm-col">
+            <div class="rm-col-header">All Users</div>
+            <div class="rm-search"><input type="text" placeholder="Search" oninput="filterCol('col1', this.value)" /></div>
+            <div class="rm-list" id="col1">
+                @foreach (var u in Model.AllUsers)
+                {
+                    <div class="rm-item" data-user-id="@u.UserId" data-name="@u.FirstName.ToLower()"
+                         data-has-access="@u.HasAccess.ToString().ToLower()" onclick="toggleAccess(this)">
+                        <input type="checkbox" @(u.HasAccess ? "checked" : "")
+                               onclick="event.stopPropagation(); toggleAccess(this.closest('.rm-item'))" />
+                        <span>@u.FirstName</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- COL 2: Selected Users -->
+        <div class="rm-col">
+            <div class="rm-col-header">Selected Users</div>
+            <div class="rm-search"><input type="text" placeholder="Search" oninput="filterCol('col2', this.value)" /></div>
+            <div class="rm-list" id="col2">
+                @foreach (var u in Model.AllUsers.Where(u => u.HasAccess))
+                {
+                    <div class="rm-item" data-user-id="@u.UserId" data-name="@u.FirstName.ToLower()" onclick="selectUser(this)">
+                        <span>@u.FirstName</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- COL 3: Permissions -->
+        <div class="rm-col">
+            <div class="rm-col-header">Permissions (Selected user)</div>
+            <div class="rm-search"><input type="text" placeholder="Search" oninput="filterCol('col3', this.value)" /></div>
+            <div class="rm-save-bar" id="saveBar">
+                <button onclick="savePermissions()">Save Permissions</button>
+            </div>
+            <div class="rm-list" id="col3">
+                <div id="permEmpty" class="rm-empty">Select a user to view permissions</div>
+                <div id="permItems" style="display:none">
+                    @foreach (var group in Model.PermissionGroups)
+                    {
+                        foreach (var p in group.Permissions)
+                        {
+                            <div class="rm-item perm-row" data-name="@p.DisplayName.ToLower()">
+                                <input type="checkbox" class="perm-check" data-perm-id="@p.Id" onchange="onPermChange()" />
+                                <span>@p.DisplayName</span>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+<script>
+    const TOGGLE_URL   = '@Html.Raw(toggleUrl)';
+    const GET_PERM_URL = '@Html.Raw(getPermUrl)';
+    const SAVE_URL     = '@Html.Raw(savePermUrl)';
+    const token        = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+    let selectedUserId = null;
+    let pendingChanges = false;
+
+    function filterCol(colId, term) {
+        document.querySelectorAll(`#${colId} .rm-item`).forEach(row => {
+            row.style.display = row.dataset.name?.includes(term.toLowerCase()) !== false ? '' : 'none';
+        });
+    }
+
+    async function toggleAccess(row) {
+        const userId   = row.dataset.userId;
+        const checkbox = row.querySelector('input[type=checkbox]');
+        try {
+            const res  = await fetch(TOGGLE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body:   JSON.stringify(userId)
+            });
+            const data = await res.json();
+            row.dataset.hasAccess = data.hasAccess.toString();
+            checkbox.checked      = data.hasAccess;
+            syncCol2(userId, data.hasAccess, row.querySelector('span').textContent.trim());
+            if (!data.hasAccess && userId === selectedUserId) clearPermPanel();
+        } catch(e) { console.error(e); }
+    }
+
+    function syncCol2(userId, hasAccess, name) {
+        const col2     = document.getElementById('col2');
+        const existing = col2.querySelector(`[data-user-id="${userId}"]`);
+        if (hasAccess && !existing) {
+            const div = document.createElement('div');
+            div.className        = 'rm-item';
+            div.dataset.userId   = userId;
+            div.dataset.name     = name.toLowerCase();
+            div.innerHTML        = `<span>${name}</span>`;
+            div.onclick          = () => selectUser(div);
+            col2.appendChild(div);
+        } else if (!hasAccess && existing) {
+            existing.remove();
+        }
+    }
+
+    async function selectUser(row) {
+        if (pendingChanges && !confirm('You have unsaved changes. Discard them?')) return;
+        document.querySelectorAll('#col2 .rm-item').forEach(r => r.classList.remove('active'));
+        row.classList.add('active');
+        selectedUserId = row.dataset.userId;
+        document.getElementById('permEmpty').style.display = 'none';
+        document.getElementById('permItems').style.display = 'block';
+        try {
+            const res = await fetch(`${GET_PERM_URL}?userId=${selectedUserId}`);
+            const ids = await res.json();
+            document.querySelectorAll('.perm-check').forEach(cb => {
+                cb.checked = ids.includes(parseInt(cb.dataset.permId));
+            });
+            pendingChanges = false;
+            document.getElementById('saveBar').style.display = 'none';
+        } catch(e) { console.error(e); }
+    }
+
+    function onPermChange() {
+        pendingChanges = true;
+        document.getElementById('saveBar').style.display = 'block';
+    }
+
+    async function savePermissions() {
+        if (!selectedUserId) return;
+        const ids = [...document.querySelectorAll('.perm-check:checked')].map(cb => parseInt(cb.dataset.permId));
+        try {
+            await fetch(SAVE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body:   JSON.stringify({ userId: selectedUserId, permissionIds: ids })
+            });
+            pendingChanges = false;
+            document.getElementById('saveBar').style.display = 'none';
+        } catch(e) { console.error(e); }
+    }
+
+    function clearPermPanel() {
+        selectedUserId = null;
+        pendingChanges = false;
+        document.getElementById('permEmpty').style.display = 'block';
+        document.getElementById('permItems').style.display = 'none';
+        document.getElementById('saveBar').style.display   = 'none';
+        document.querySelectorAll('#col2 .rm-item').forEach(r => r.classList.remove('active'));
+    }
+</script>
