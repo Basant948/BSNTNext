@@ -10,6 +10,9 @@ namespace BSNTNext.Infrastructure
         {
             services.AddScoped<IAuthServices, AuthServices>();
             services.AddScoped<IHomeService, HomeService>();
+            services.AddScoped<INavigationService, NavigationService>();
+            services.AddScoped<IModuleRoleService, ModuleRoleService>();
+            //services.AddScoped<>
 
 
             return services;
