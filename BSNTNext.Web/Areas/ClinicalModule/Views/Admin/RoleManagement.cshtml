@@ -1,0 +1,7 @@
+﻿@using BSNTNext.Application.Dtos.RoleManagement
+@model ModuleRolePageDto
+@{
+    Layout = "~/Views/Shared/_ModuleLayout.cshtml";
+    ViewData["Title"] = "Role Management";
+}
+@await Html.PartialAsync("~/Views/Shared/_ModuleRoleManagement.cshtml", Model)
