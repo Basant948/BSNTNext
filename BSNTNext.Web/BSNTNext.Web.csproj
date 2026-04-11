@@ -24,6 +24,10 @@
 
   <ItemGroup>
     <Folder Include="Areas\" />
+    <Folder Include="Areas\PharmacyModule\Controllers\" />
+    <Folder Include="Areas\PharmacyModule\Data\" />
+    <Folder Include="Areas\PharmacyModule\Models\" />
+    <Folder Include="Areas\PharmacyModule\Views\" />
   </ItemGroup>
 
 </Project>
