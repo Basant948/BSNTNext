@@ -1,0 +1,6 @@
+﻿@using BSNTNext.Application.Dtos.Nav
+
+@{
+	Layout = "~/Views/Shared/_ModuleLayout.cshtml";
+	var navItems = ViewBag.ModuleNav as List<NavItemDto> ?? new();
+}
